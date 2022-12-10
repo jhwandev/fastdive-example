@@ -1,19 +1,20 @@
 import React from "react";
 
 import fastdive from "../assets/fastdive.png";
-import Header from "../components/Header";
-import "../App.css";
 
 function main() {
   return (
     <div className="App">
-      <Header />
       <div className="App-header">
-        <img src={fastdive} className="App-logo" alt="logo" />
+        <img src={fastdive} className="App-logo" alt="fastdive" />
         <p>
           <code>Fastdive API example</code>
         </p>
-        <a className="App-link" href="" target="_blank">
+        <a
+          className="App-link"
+          href="https://fearless-coil-306.notion.site/Fast-dive-API-Docs-2facb4ac77894772bedb3c1b5c319ca7"
+          target="_blank"
+        >
           Learn about Fast-Dive
         </a>
       </div>
