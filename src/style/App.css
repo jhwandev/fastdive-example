@@ -40,6 +40,7 @@
 .img-title {
   width: 40px;
 }
+
 /* flex */
 
 .item {
@@ -49,20 +50,22 @@
   flex-grow: 1;
   color: white;
 }
+
 .content {
   padding-left: 10%;
   padding-right: 10%;
-  max-width: 1000px;
+  max-width: 1100px;
   margin: 0 auto;
 }
 
 .title {
+  color: white;
   font-size: xx-large;
   font-weight: bold;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 25px;
+  margin-top: 50px;
 }
 
 .flexbox {
@@ -79,17 +82,21 @@
 }
 
 /* react-highlight style */
-
 .hljs {
   height: 700px;
   /* height: 100%; */
   font-size: small;
 }
 .hljs::-webkit-scrollbar {
-  width: 10px;
+  width: 3px;
   background-color: black;
   border-radius: 55px;
 }
+.hljs::-webkit-scrollbar-thumb {
+  background-color: rgb(255, 255, 255);
+  border-radius: 55px;
+}
+
 /* component */
 .w-btn {
   border: 0;
@@ -100,6 +107,10 @@
   transition: 0.25s;
   background-color: transparent;
   color: white;
+}
+
+.r-btn {
+  color: #282c34;
 }
 
 .w-btn:hover {
@@ -115,35 +126,69 @@
 
 .w-input {
   margin-top: 5px;
+  margin-bottom: 10px;
   width: 99%;
   height: 32px;
   font-size: 15px;
   border: none;
   border-radius: 5px;
   background-color: rgb(233, 233, 233);
+  background-color: black;
+  color: white;
+}
+
+.w-selectbox {
+  margin-top: 5px;
+  margin-bottom: 10px;
+  width: 99.8%;
+  height: 32px;
+  font-size: 15px;
+  border: none;
+  border-radius: 5px;
+  background-color: rgb(233, 233, 233);
+  background-color: black;
+  color: white;
 }
 
 .w-textarea {
   width: 99%;
-  height: 465px;
-  margin-top: 3px;
-  color: black;
+  height: 405px;
+  margin-top: 2px;
+  /* color: black; */
+  color: rgb(0, 224, 7);
+  /* color: white; */
   background-color: white;
+  background-color: black;
   resize: none;
-  font-size: small;
+  font-size: medium;
+}
+
+.w-textarea::-webkit-scrollbar {
+  width: 3px;
+  background-color: black;
+  border-radius: 55px;
+}
+
+.w-textarea::-webkit-scrollbar-thumb {
+  background-color: rgb(255, 255, 255);
+  border-radius: 55px;
 }
 
 .connect-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 300px;
+  /* min-width: 230px; */
+  width: 100%;
   min-height: 60px;
   padding: 15px 30px;
   border-radius: 15px;
   background-color: black;
   border: 0;
   transition: 0.25s;
+  color: white;
+  font-weight: 600;
+  font-size: small;
   /* display: inline-block; */
   /* vertical-align: middle; */
 }

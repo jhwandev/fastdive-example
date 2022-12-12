@@ -2,12 +2,14 @@ import React from "react";
 import Highlight from "react-highlight";
 import { useState } from "react";
 import meta from "../assets/meta.svg";
-import eth from "../assets/eth.png";
-import { exampleCodeInitial, responseInitial } from "../exampleCode.js";
+import eth from "../assets/eth_logo.png";
+
+import { exampleCodeInitial } from "../exampleCode.js";
 
 function NftLoginKct() {
   const [exampleCode, setExampleCode] = useState(exampleCodeInitial);
-  const [response, setResponse] = useState(responseInitial);
+  const [response, setResponse] = useState("");
+
   return (
     <>
       <section className="content">

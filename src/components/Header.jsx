@@ -6,8 +6,8 @@ import "../Button.css";
 function header() {
   return (
     <>
-      <div class="header-section">
-        <div class="header-logo">
+      <div className="header-section">
+        <div className="header-logo">
           <Link to="/">
             <img
               style={{ marginLeft: "30px" }}
@@ -17,7 +17,7 @@ function header() {
             ></img>
           </Link>
         </div>
-        <div class="header-nav">
+        <div className="header-nav">
           <ul>
             <li>
               <Link to="/">
@@ -25,28 +25,18 @@ function header() {
               </Link>
             </li>
             <li>
-              <Link to="/nftLoginErc">
-                <button className="w-btn">NFT LOGIN [ERC]</button>
+              <Link to="/nftLogin">
+                <button className="w-btn">NFT Login</button>
               </Link>
             </li>
             <li>
-              <Link to="/nftLoginKct">
-                <button className="w-btn">NFT LOGIN [KCT]</button>
-              </Link>
-            </li>
-            <li>
-              <Link to="/nftLoginKct">
-                <button className="w-btn">Metadat1</button>
-              </Link>
-            </li>
-            <li>
-              <Link to="/nftLoginKct">
-                <button className="w-btn">Metadata2</button>
+              <Link>
+                <button className="w-btn">NFT Metadata(준비중)</button>
               </Link>
             </li>
           </ul>
         </div>
-        <div class="header-right">
+        <div className="header-right">
           <ul>
             <li>
               <a href="/">

@@ -4,11 +4,9 @@ import kaikasSvg from "../assets/kaikas.svg";
 import Highlight from "react-highlight";
 import Caver from "caver-js";
 import axios from "axios";
-// import kaikasLogo from "../assets/kaikas.png";
 
-// logos
 import klaytnLogo from "../assets/klaytn_logo.png";
-import etherumLogo from "../assets/eth_logo.png";
+import etherumLogo from "../assets/eth_logo2.png";
 import polygonLogo from "../assets/polygon_logo.png";
 import bnbLogo from "../assets/bnb_logo.png";
 import boraLogo from "../assets/bora_logo.png";
@@ -17,13 +15,13 @@ import wemixLogo from "../assets/wemix_logo.png";
 
 import { exampleCodeInitial } from "../exampleCode.js";
 
-function NftLoginKct() {
+function NftMetadata() {
   //state
   const exampleCode = exampleCodeInitial;
   const [response, setResponse] = useState("connect your account.");
   const [responseObject, setResponseObject] = useState();
   const [chainId, setChainId] = useState("8217");
-  const [apikey, setApikey] = useState("asdfasdf");
+  const [apikey, setApikey] = useState("12ad0db3-89e7-4589-9c79-3582b3042b88");
   const [contractAddress, setContractAddress] = useState(
     "0x7b19bf9abe4119618f69aebb78b27f73cdaa4182"
   );
@@ -45,7 +43,6 @@ function NftLoginKct() {
    * @param {*} e
    */
   const handleChange = (e) => {
-    console.log(e.target.name);
     switch (e.target.name) {
       case "contractAddress":
         setContractAddress(e.target.value);
@@ -129,7 +126,7 @@ function NftLoginKct() {
             sign: signObj,
             signMessage: message,
             contractAddress: contractAddress,
-            chainId: "klaytn",
+            chainId: chainId,
           },
           {
             headers: headers,
@@ -223,7 +220,7 @@ function NftLoginKct() {
         <div>
           {/* title */}
           <div className="title">
-            <img className="img-title" src={klaytnLogo} alt="klaytnLogo" />
+            {/* <img className="img-title" src={klaytnLogo} alt="klaytnLogo" />
             &nbsp;&nbsp;
             <img className="img-title" src={etherumLogo} alt="etherumLogo" />
             &nbsp;&nbsp;
@@ -239,10 +236,13 @@ function NftLoginKct() {
               className="img-title"
               src={avalancheLogo}
               alt="avalancheLogo"
-            />
+            /> */}
           </div>
-          <div className="title" style={{ marginTop: "20px" }}>
-            <span>NFT HOLDER VERIFY & LOGIN</span>
+          <div
+            className="title"
+            style={{ marginTop: "30px", marginBottom: "60px" }}
+          >
+            <span>get NFT Metadata</span>
           </div>
 
           {/* title end */}
@@ -381,10 +381,28 @@ function NftLoginKct() {
           </div>
           {/* flex item 2 end */}
         </div>
-        {imageList}
+
+        <div>{imageList}</div>
+
+        <br />
+        <div className="title" style={{ marginBottom: "20px" }}>
+          <img className="img-title" src={klaytnLogo} alt="klaytnLogo" />
+          &nbsp;&nbsp;
+          <img className="img-title" src={etherumLogo} alt="etherumLogo" />
+          &nbsp;&nbsp;
+          <img className="img-title" src={polygonLogo} alt="polygonLogo" />
+          &nbsp;&nbsp;
+          <img className="img-title" src={bnbLogo} alt="bnbLogo" />
+          &nbsp;&nbsp;
+          <img className="img-title" src={boraLogo} alt="boraLogo" />
+          &nbsp;&nbsp;
+          <img className="img-title" src={wemixLogo} alt="wemixLogo" />
+          &nbsp;&nbsp;
+          <img className="img-title" src={avalancheLogo} alt="avalancheLogo" />
+        </div>
       </section>
     </>
   );
 }
 
-export default NftLoginKct;
+export default NftMetadata;
