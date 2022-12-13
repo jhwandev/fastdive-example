@@ -1,14 +1,43 @@
+import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { Link } from "react-router-dom";
 import logo from "../assets/fastdive_white.png";
 import git from "../assets/git.png";
 import "../Button.css";
 
-function header() {
+function Header() {
+  const [btnActive, setBtnActive] = useState("");
+
+  const location = useLocation();
+
+  useEffect(() => {
+    switch (location.pathname) {
+      case "/":
+        setBtnActive("1");
+        break;
+      case "/nftLogin":
+        setBtnActive("2");
+        break;
+      case "/nftMetadata":
+        setBtnActive("3");
+        break;
+
+      default:
+        break;
+    }
+  }, [location]);
+
+  const toggleActive = (e) => {
+    setBtnActive(() => {
+      return e.target.value;
+    });
+  };
+
   return (
     <>
       <div className="header-section">
         <div className="header-logo">
-          <Link to="/">
+          <Link onClick={toggleActive} to="/">
             <img
               style={{ marginLeft: "30px" }}
               width="150px"
@@ -21,17 +50,35 @@ function header() {
           <ul>
             <li>
               <Link to="/">
-                <button className="w-btn">MAIN</button>
+                <button
+                  value="1"
+                  className={"w-btn" + ("1" === btnActive ? " active" : "")}
+                  // onClick={toggleActive}
+                >
+                  MAIN
+                </button>
               </Link>
             </li>
             <li>
               <Link to="/nftLogin">
-                <button className="w-btn">NFT LOGIN</button>
+                <button
+                  value="2"
+                  className={"w-btn" + ("2" === btnActive ? " active" : "")}
+                  // onClick={toggleActive}
+                >
+                  NFT LOGIN
+                </button>
               </Link>
             </li>
             <li>
               <Link to="/nftMetadata">
-                <button className="w-btn">NFT METADATA</button>
+                <button
+                  value="3"
+                  className={"w-btn" + ("3" === btnActive ? " active" : "")}
+                  // onClick={toggleActive}
+                >
+                  NFT METADATA
+                </button>
               </Link>
             </li>
           </ul>
@@ -50,4 +97,4 @@ function header() {
   );
 }
 
-export default header;
+export default Header;

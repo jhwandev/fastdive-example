@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Highlight from "react-highlight";
 import axios from "axios";
 
@@ -11,6 +11,7 @@ import avalancheLogo from "../assets/avalanche_logo.png";
 import wemixLogo from "../assets/wemix_logo.png";
 
 import { exampleCodeInitial } from "../exampleCode.js";
+
 //convert IPFS
 function tryConvertIpfs(url) {
   if (url.indexOf("ipfs://") > -1) {
@@ -52,6 +53,10 @@ function NftMetadata() {
       <img width="180px" src={url} alt="nfts" style={{ borderRadius: "0" }} />
     </div>
   ));
+
+  useEffect(() => {
+    
+  }, []);
 
   /**
    * inputdata onchange event
@@ -188,10 +193,9 @@ function NftMetadata() {
       <section className="content">
         <div>
           {/* title */}
-          <div className="title"></div>
           <div
             className="title"
-            style={{ marginTop: "30px", marginBottom: "60px" }}
+            style={{ marginTop: "70px", marginBottom: "60px" }}
           >
             <span>NFT METADATA</span>
           </div>
@@ -219,11 +223,11 @@ function NftMetadata() {
             >
               <option value="1">Ethereum [Mainnet]</option>
               <option value="8217">Klaytn [Mainnet]</option>
-              <option disable value="137">
-                Matic [Mainnet]
-              </option>
               <option value="1001">Baobob [Klaytn Testnet] </option>
               <option value="5">Goerli [Etereum Testnet]</option>
+              <option disabled value="137">
+                Matic [Mainnet]
+              </option>
             </select>
             <br />
             &nbsp;NFT Contract Address
@@ -333,12 +337,20 @@ function NftMetadata() {
             </div>
           </div>
           {/* flex item 2 end */}
-          <div className="item" style={{ marginBottom: "5px", minHeight: "0" }}>
+          {/* flex item 3 start */}
+          <div
+            className="item"
+            style={{
+              marginBottom: "5px",
+              minHeight: "0",
+            }}
+          >
             NFT Images<div>{imageList}&nbsp;</div>
           </div>
+          {/* flex item 3 end */}
         </div>
         <br />
-        <div className="title" style={{ marginBottom: "20px" }}>
+        <div className="icons" style={{ marginBottom: "20px" }}>
           <img className="img-title" src={klaytnLogo} alt="klaytnLogo" />
           &nbsp;&nbsp;
           <img className="img-title" src={etherumLogo} alt="etherumLogo" />

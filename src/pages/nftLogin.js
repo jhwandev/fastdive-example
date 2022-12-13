@@ -340,28 +340,9 @@ function NftLogin() {
       <section className="content">
         <div>
           {/* title */}
-          <div className="title">
-            {/* <img className="img-title" src={klaytnLogo} alt="klaytnLogo" />
-            &nbsp;&nbsp;
-            <img className="img-title" src={etherumLogo} alt="etherumLogo" />
-            &nbsp;&nbsp;
-            <img className="img-title" src={polygonLogo} alt="polygonLogo" />
-            &nbsp;&nbsp;
-            <img className="img-title" src={bnbLogo} alt="bnbLogo" />
-            &nbsp;&nbsp;
-            <img className="img-title" src={boraLogo} alt="boraLogo" />
-            &nbsp;&nbsp;
-            <img className="img-title" src={wemixLogo} alt="wemixLogo" />
-            &nbsp;&nbsp;
-            <img
-              className="img-title"
-              src={avalancheLogo}
-              alt="avalancheLogo"
-            /> */}
-          </div>
           <div
             className="title"
-            style={{ marginTop: "30px", marginBottom: "60px" }}
+            style={{ marginTop: "70px", marginBottom: "60px" }}
           >
             <span>NFT HOLDER VERIFY & LOGIN</span>
           </div>
@@ -390,11 +371,11 @@ function NftLogin() {
             >
               <option value="1">Ethereum [Mainnet]</option>
               <option value="8217">Klaytn [Mainnet]</option>
-              <option disable value="137">
-                Matic [Mainnet]
-              </option>
               <option value="1001">Baobob [Klaytn Testnet] </option>
               <option value="5">Goerli [Etereum Testnet]</option>
+              <option disabled value="137">
+                Matic [Mainnet]
+              </option>
             </select>
             <br />
             &nbsp;NFT Contract Address
@@ -503,12 +484,20 @@ function NftLogin() {
             </div>
           </div>
           {/* flex item 2 end */}
+          {/* flex item 3 start */}
+          <div
+            className="item"
+            style={{
+              marginBottom: "5px",
+              minHeight: "0",
+            }}
+          >
+            NFT Images<div>{imageList}&nbsp;</div>
+          </div>
+          {/* flex item 3 end */}
         </div>
-
-        <div>{imageList}</div>
-
         <br />
-        <div className="title" style={{ marginBottom: "20px" }}>
+        <div className="icons" style={{ marginBottom: "20px" }}>
           <img className="img-title" src={klaytnLogo} alt="klaytnLogo" />
           &nbsp;&nbsp;
           <img className="img-title" src={etherumLogo} alt="etherumLogo" />
