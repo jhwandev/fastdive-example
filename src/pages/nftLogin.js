@@ -390,7 +390,9 @@ function NftLogin() {
             >
               <option value="1">Ethereum [Mainnet]</option>
               <option value="8217">Klaytn [Mainnet]</option>
-              <option value="137">Matic [Mainnet]</option>
+              <option disable value="137">
+                Matic [Mainnet]
+              </option>
               <option value="1001">Baobob [Klaytn Testnet] </option>
               <option value="5">Goerli [Etereum Testnet]</option>
             </select>
