@@ -135,8 +135,9 @@ function NftLogin() {
       };
       axios
         .post(
+          "https://jml6mjauvi.execute-api.ap-northeast-2.amazonaws.com/v1/nft/verifyHolder",
           // "https://p6eyx3nxqj.execute-api.ap-northeast-2.amazonaws.com/v1/nft/verifyHolder",
-          "http://localhost:3000/v1/nft/verifyHolder",
+          // "http://localhost:3000/v1/nft/verifyHolder",
           // "https://api.fast-dive.com/v1/nft/verifyHolder",
           {
             sign: signObj,
@@ -239,7 +240,8 @@ function NftLogin() {
       axios
         .post(
           // "http://localhost:3000/v1/nft/verifyHolder",
-          "https://api.fast-dive.com/v1/nft/verifyHolder",
+          "https://jml6mjauvi.execute-api.ap-northeast-2.amazonaws.com/v1/nft/verifyHolder",
+          // "https://api.fast-dive.com/v1/nft/verifyHolder",
           {
             sign: signObj,
             signMessage: message,
