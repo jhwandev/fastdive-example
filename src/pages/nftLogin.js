@@ -15,6 +15,16 @@ import avalancheLogo from "../assets/avalanche_logo.png";
 import wemixLogo from "../assets/wemix_logo.png";
 
 import { exampleCodeInitial } from "../exampleCode.js";
+import { v4 } from "uuid";
+
+//convert IPFS
+function tryConvertIpfs(url) {
+  if (url.indexOf("ipfs://") > -1) {
+    const ipfsUrl = "https://ipfs.io/ipfs/" + url.split("ipfs://")[1];
+    return ipfsUrl;
+  }
+  return url;
+}
 
 function NftLogin() {
   //state
@@ -125,13 +135,15 @@ function NftLogin() {
       };
       axios
         .post(
-          "https://p6eyx3nxqj.execute-api.ap-northeast-2.amazonaws.com/v1/nft/verifyHolder",
-          // "http://localhost:3000/v1/nft/verifyHolder",
+          // "https://p6eyx3nxqj.execute-api.ap-northeast-2.amazonaws.com/v1/nft/verifyHolder",
+          "http://localhost:3000/v1/nft/verifyHolder",
+          // "https://api.fast-dive.com/v1/nft/verifyHolder",
           {
             sign: signObj,
             signMessage: message,
             contractAddress: contractAddress,
             chainId: chainId,
+            walletType: "kaikas",
           },
           {
             headers: headers,
@@ -169,7 +181,6 @@ function NftLogin() {
    */
   async function loginWithMetamask() {
     var isConnected = await connectWithMetamask();
-
     //connect완료 될 경우 sign진행
     if (isConnected) {
       await signWithMetamask();
@@ -211,29 +222,30 @@ function NftLogin() {
    * 2. 메타마스크 서명 및 요청
    */
   async function signWithMetamask() {
-    const caver = new Caver(window.ethereum);
-
     setResponse((prev) => "\nsignature in progress ..." + prev);
-
     const message = "contract address : " + contractAddress;
 
     try {
-      const signObj = await caver.klay.sign(
-        message,
-        window.klaytn.selectedAddress
-      );
+      const signObj = await window.ethereum.request({
+        method: "personal_sign",
+        params: [message, window.ethereum.selectedAddress, v4()],
+      });
+
       const headers = {
         "Content-Type": "application/json",
         "x-api-key": apikey,
       };
+
       axios
         .post(
-          "http://localhost:3000/v1/nft/verifyHolder",
+          // "http://localhost:3000/v1/nft/verifyHolder",
+          "https://api.fast-dive.com/v1/nft/verifyHolder",
           {
             sign: signObj,
             signMessage: message,
             contractAddress: contractAddress,
             chainId: chainId,
+            walletType: "metamask",
           },
           {
             headers: headers,
@@ -315,7 +327,8 @@ function NftLogin() {
     let res = [];
     for (let i = 1; i < responseObject.length; i++) {
       let metadata = await axios.get(responseObject[i].metadataURI);
-      res.push(metadata.data.image);
+      const imageUrl = tryConvertIpfs(metadata.data.image);
+      res.push(imageUrl);
     }
     setImageUrlArr(res);
   }
@@ -356,6 +369,14 @@ function NftLogin() {
         <div className="flexbox">
           {/* flex item 1 */}
           <div className="item">
+            &nbsp;API KEY
+            <input
+              className="w-input"
+              name="apikey"
+              onChange={handleChange}
+              value={apikey}
+              maxLength="100"
+            />
             {/* <br /> */}
             &nbsp;Network
             <br />
@@ -367,27 +388,12 @@ function NftLogin() {
             >
               <option value="1">Ethereum [Mainnet]</option>
               <option value="8217">Klaytn [Mainnet]</option>
-              <option disabled value="137">
-                Matic [Mainnet]
-              </option>
-              <option disabled value="1001">
-                Baobob [Klaytn Testnet]{" "}
-              </option>
-              <option disabled value="5">
-                Goerli [Etereum Testnet]
-              </option>
+              <option value="137">Matic [Mainnet]</option>
+              <option value="1001">Baobob [Klaytn Testnet] </option>
+              <option value="5">Goerli [Etereum Testnet]</option>
             </select>
             <br />
-            &nbsp;Fast-dive API KEY
-            <input
-              className="w-input"
-              name="apikey"
-              onChange={handleChange}
-              value={apikey}
-              maxLength="100"
-            />
-            <br />
-            &nbsp;Contract Address
+            &nbsp;NFT Contract Address
             <br />
             <input
               className="w-input"
@@ -412,11 +418,7 @@ function NftLogin() {
                 />
                 <span style={{ paddingRight: "12px" }}> Connect to Kaikas</span>
               </button>
-              <button
-                disabled
-                className="connect-btn"
-                onClick={loginWithMetamask}
-              >
+              <button className="connect-btn" onClick={loginWithMetamask}>
                 <img
                   style={{
                     flex: 1,
@@ -426,10 +428,10 @@ function NftLogin() {
                     justifyContent: "flex-end",
                   }}
                   src={meta}
-                  alt="kaikasLogin"
+                  alt="metamaskLogin"
                 />
                 {/* <span>Connect to Metamask</span> */}
-                <span>Connect to Metamask (Soon)</span>
+                <span>Connect to Metamask</span>
               </button>
             </div>
             <br />

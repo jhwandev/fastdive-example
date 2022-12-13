@@ -26,12 +26,12 @@ function header() {
             </li>
             <li>
               <Link to="/nftLogin">
-                <button className="w-btn">NFT Login</button>
+                <button className="w-btn">NFT LOGIN</button>
               </Link>
             </li>
             <li>
-              <Link>
-                <button className="w-btn">NFT Metadata(준비중)</button>
+              <Link to="/nftMetadata">
+                <button className="w-btn">NFT METADATA</button>
               </Link>
             </li>
           </ul>

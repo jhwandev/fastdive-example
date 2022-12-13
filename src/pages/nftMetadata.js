@@ -1,12 +1,9 @@
 import { useState } from "react";
-import meta from "../assets/meta.svg";
-import kaikasSvg from "../assets/kaikas.svg";
 import Highlight from "react-highlight";
-import Caver from "caver-js";
 import axios from "axios";
 
 import klaytnLogo from "../assets/klaytn_logo.png";
-import etherumLogo from "../assets/eth_logo2.png";
+import etherumLogo from "../assets/eth_logo.png";
 import polygonLogo from "../assets/polygon_logo.png";
 import bnbLogo from "../assets/bnb_logo.png";
 import boraLogo from "../assets/bora_logo.png";
@@ -14,16 +11,27 @@ import avalancheLogo from "../assets/avalanche_logo.png";
 import wemixLogo from "../assets/wemix_logo.png";
 
 import { exampleCodeInitial } from "../exampleCode.js";
+//convert IPFS
+function tryConvertIpfs(url) {
+  if (url.indexOf("ipfs://") > -1) {
+    const ipfsUrl = "https://ipfs.io/ipfs/" + url.split("ipfs://")[1];
+    return ipfsUrl;
+  }
+  return url;
+}
 
 function NftMetadata() {
   //state
   const exampleCode = exampleCodeInitial;
   const [response, setResponse] = useState("connect your account.");
   const [responseObject, setResponseObject] = useState();
-  const [chainId, setChainId] = useState("8217");
+  const [chainId, setChainId] = useState("1");
+  const [ownerAddress, setOwnerAddress] = useState(
+    "0x46efbaedc92067e6d60e84ed6395099723252496"
+  );
   const [apikey, setApikey] = useState("12ad0db3-89e7-4589-9c79-3582b3042b88");
   const [contractAddress, setContractAddress] = useState(
-    "0x7b19bf9abe4119618f69aebb78b27f73cdaa4182"
+    "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D"
   );
   const [imageUrlArr, setImageUrlArr] = useState([]);
   const [isDisabled, setIsDisabled] = useState(true);
@@ -32,8 +40,16 @@ function NftMetadata() {
   const { klaytn } = window;
 
   const imageList = imageUrlArr.map((url, index) => (
-    <div key={index} style={{ display: "inline-block", padding: "10px" }}>
-      <img width="180px" src={url} alt="nfts" />
+    <div
+      key={index}
+      style={{
+        display: "inline-block",
+        padding: "10px",
+        backgroundColor: "black",
+        borderRadius: "10px",
+      }}
+    >
+      <img width="180px" src={url} alt="nfts" style={{ borderRadius: "0" }} />
     </div>
   ));
 
@@ -53,78 +69,30 @@ function NftMetadata() {
       case "networkSelect":
         setChainId(e.target.value);
         break;
+      case "ownerAddress":
+        setOwnerAddress(e.target.value);
+        break;
       default:
         break;
     }
   };
 
-  /**
-   * 0. 카이카스로 로그인 하기 버튼
-   * @returns
-   */
-  async function loginWithKaikas() {
-    var isConnected = await connectWithKaikas();
-
-    //connect완료 될 경우 sign진행
-    if (isConnected) {
-      await signWithKaikas();
-    } else {
-      // alert("sign failed");
-      // setResponse("sign failed");
-      return false;
-    }
-  }
-
-  /**
-   * 1. 카이카스 <-> 웹사이트 connect 확인
-   * @returns bool
-   */
-  async function connectWithKaikas() {
-    if (!window.klaytn.isKaikas) {
-      // alert("kaikas 설치 해주세요!");
-      setResponse("please install kaikas wallet");
-      return false;
-    }
-    setResponse("connect in progress ...");
-    try {
-      const accounts = await window.klaytn.enable();
-      setResponse("connect success -> " + accounts[0]);
-      return true;
-    } catch (e) {
-      // alert("connect failed");
-      setResponse("connect failed ...\n error : \n" + JSON.stringify(e));
-      return false;
-    }
-  }
-
-  /**
-   * 2. 서명 및 요청
-   */
-  async function signWithKaikas() {
-    const caver = new Caver(klaytn);
-    // puuvilla 0xef45d7272211f7d9c9b3b509d550e8856cd9e050
-    // sheepfarm 0xa9f07b1260bb9eebcbaba66700b00fe08b61e1e6
-    // const contractAddress = "0x7b19bf9abe4119618f69aebb78b27f73cdaa4182"; //birdieshot
-
-    setResponse("signature in progress ...");
-
-    const message = "contract address : " + contractAddress;
+  async function test() {
+    setResponse("processing ...");
 
     try {
-      const signObj = await caver.klay.sign(
-        message,
-        window.klaytn.selectedAddress
-      );
       const headers = {
         "Content-Type": "application/json",
         "x-api-key": apikey,
       };
       axios
         .post(
-          "http://localhost:3000/v1/nft/verifyHolder",
+          "https://jml6mjauvi.execute-api.ap-northeast-2.amazonaws.com/v1/nft/metadata", //deploy production
+          // "https://ghqn8lq990.execute-api.ap-northeast-2.amazonaws.com/v1/nft/metadata", //deploy
+          // "https://api.fast-dive.com/v1/nft/metadata",
+          // "http://localhost:3000/v1/nft/metadata",
           {
-            sign: signObj,
-            signMessage: message,
+            ownerAddress: ownerAddress,
             contractAddress: contractAddress,
             chainId: chainId,
           },
@@ -209,7 +177,8 @@ function NftMetadata() {
     let res = [];
     for (let i = 1; i < responseObject.length; i++) {
       let metadata = await axios.get(responseObject[i].metadataURI);
-      res.push(metadata.data.image);
+      const imageUrl = tryConvertIpfs(metadata.data.image);
+      res.push(imageUrl);
     }
     setImageUrlArr(res);
   }
@@ -219,30 +188,12 @@ function NftMetadata() {
       <section className="content">
         <div>
           {/* title */}
-          <div className="title">
-            {/* <img className="img-title" src={klaytnLogo} alt="klaytnLogo" />
-            &nbsp;&nbsp;
-            <img className="img-title" src={etherumLogo} alt="etherumLogo" />
-            &nbsp;&nbsp;
-            <img className="img-title" src={polygonLogo} alt="polygonLogo" />
-            &nbsp;&nbsp;
-            <img className="img-title" src={bnbLogo} alt="bnbLogo" />
-            &nbsp;&nbsp;
-            <img className="img-title" src={boraLogo} alt="boraLogo" />
-            &nbsp;&nbsp;
-            <img className="img-title" src={wemixLogo} alt="wemixLogo" />
-            &nbsp;&nbsp;
-            <img
-              className="img-title"
-              src={avalancheLogo}
-              alt="avalancheLogo"
-            /> */}
-          </div>
+          <div className="title"></div>
           <div
             className="title"
             style={{ marginTop: "30px", marginBottom: "60px" }}
           >
-            <span>get NFT Metadata</span>
+            <span>NFT METADATA</span>
           </div>
 
           {/* title end */}
@@ -250,7 +201,14 @@ function NftMetadata() {
         <div className="flexbox">
           {/* flex item 1 */}
           <div className="item">
-            {/* <br /> */}
+            &nbsp;API KEY
+            <input
+              className="w-input"
+              name="apikey"
+              onChange={handleChange}
+              value={apikey}
+              maxLength="100"
+            />
             &nbsp;Network
             <br />
             <select
@@ -266,16 +224,7 @@ function NftMetadata() {
               <option value="5">Goerli [Etereum Testnet]</option>
             </select>
             <br />
-            &nbsp;Fast-dive API KEY
-            <input
-              className="w-input"
-              name="apikey"
-              onChange={handleChange}
-              value={apikey}
-              maxLength="100"
-            />
-            <br />
-            &nbsp;Contract Address
+            &nbsp;NFT Contract Address
             <br />
             <input
               className="w-input"
@@ -284,23 +233,24 @@ function NftMetadata() {
               value={contractAddress}
               maxLength="42"
             />
+            &nbsp;Owner Address
+            <br />
+            <input
+              className="w-input"
+              name="ownerAddress"
+              onChange={handleChange}
+              value={ownerAddress}
+              maxLength="100"
+            />
             <br />
             <br />
             <div style={{ display: "flex", gap: "1em" }}>
-              <button className="connect-btn" onClick={loginWithKaikas}>
-                <img
-                  style={{
-                    flex: 1,
-                    width: "20px",
-                    paddingRight: "30px",
-                    paddingLeft: "12px",
-                  }}
-                  src={kaikasSvg}
-                  alt="kaikasLogin"
-                />
-                <span style={{ paddingRight: "12px" }}> Connect to Kaikas</span>
+              <button className="connect-btn" onClick={test}>
+                <span style={{ paddingRight: "30px", fontSize: "large" }}>
+                  NFT Metadata
+                </span>
               </button>
-              <button className="connect-btn">
+              {/* <button className="connect-btn">
                 <img
                   style={{
                     flex: 1,
@@ -308,12 +258,13 @@ function NftMetadata() {
                     paddingRight: "30px",
                     display: "flex",
                     justifyContent: "flex-end",
+                    paddingLeft: "20px",
                   }}
-                  src={meta}
-                  alt="kaikasLogin"
+                  src={etherumLogo}
+                  alt="ethereum"
                 />
-                <span>Connect to Metamask</span>
-              </button>
+                <span style={{ paddingRight: "20px" }}> Ethereum NFT</span>
+              </button> */}
             </div>
             <br />
             <br />
@@ -367,7 +318,7 @@ function NftMetadata() {
                 </button>
               </div>
             </div>
-            <textarea className="w-textarea" disabled value={response} />
+            <textarea className="m-textarea" disabled value={response} />
           </div>
           {/* flex item 1 end */}
           {/* flex item 2 */}
@@ -380,10 +331,10 @@ function NftMetadata() {
             </div>
           </div>
           {/* flex item 2 end */}
+          <div className="item" style={{ marginBottom: "5px", minHeight: "0" }}>
+            NFT Images<div>{imageList}&nbsp;</div>
+          </div>
         </div>
-
-        <div>{imageList}</div>
-
         <br />
         <div className="title" style={{ marginBottom: "20px" }}>
           <img className="img-title" src={klaytnLogo} alt="klaytnLogo" />

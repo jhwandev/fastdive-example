@@ -44,7 +44,7 @@
 /* flex */
 
 .item {
-  min-height: 85vh;
+  min-height: 80vh;
   flex-basis: 23.5%;
   flex-shrink: 1;
   flex-grow: 1;
@@ -153,6 +153,19 @@
 .w-textarea {
   width: 99%;
   height: 405px;
+  margin-top: 2px;
+  /* color: black; */
+  color: rgb(0, 224, 7);
+  /* color: white; */
+  background-color: white;
+  background-color: black;
+  resize: none;
+  font-size: medium;
+}
+
+.m-textarea {
+  width: 99%;
+  height: 335px;
   margin-top: 2px;
   /* color: black; */
   color: rgb(0, 224, 7);
