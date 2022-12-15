@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import meta from "../assets/meta.svg";
 import kaikasSvg from "../assets/kaikas.svg";
 import Highlight from "react-highlight";
 import Caver from "caver-js";
 import axios from "axios";
+import { v4 } from "uuid";
 
 // logos
 import klaytnLogo from "../assets/klaytn_logo.png";
@@ -15,21 +16,11 @@ import avalancheLogo from "../assets/avalanche_logo.png";
 import wemixLogo from "../assets/wemix_logo.png";
 
 import { exampleCodeInitial } from "../exampleCode.js";
-import { v4 } from "uuid";
-
-//convert IPFS
-function tryConvertIpfs(url) {
-  if (url.indexOf("ipfs://") > -1) {
-    const ipfsUrl = "https://ipfs.io/ipfs/" + url.split("ipfs://")[1];
-    return ipfsUrl;
-  }
-  return url;
-}
 
 function NftLogin() {
   //state
   const exampleCode = exampleCodeInitial;
-  const [response, setResponse] = useState("\n\nconnect your account.");
+  const [response, setResponse] = useState("connect your account.");
   const [responseObject, setResponseObject] = useState();
   const [chainId, setChainId] = useState("8217");
   const [apikey, setApikey] = useState("12ad0db3-89e7-4589-9c79-3582b3042b88");
@@ -38,10 +29,39 @@ function NftLogin() {
   );
   const [imageUrlArr, setImageUrlArr] = useState([]);
   const [isDisabled, setIsDisabled] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   //klaytn
   const { klaytn, ethereum } = window;
 
+  useEffect(() => {
+    const loadingEffect = () => {
+      setResponse((prev) => prev + ".");
+    };
+    if (isLoading) {
+      const interval = setInterval(loadingEffect, 100);
+      return () => {
+        clearInterval(interval);
+      };
+    }
+  }, [isLoading]);
+
+  /**
+   * ipfs일경우 형식에맞춰 convert
+   * @param {string} url
+   * @returns
+   */
+  function tryConvertIpfs(url) {
+    if (url.indexOf("ipfs://") > -1) {
+      const ipfsUrl = "https://ipfs.io/ipfs/" + url.split("ipfs://")[1];
+      return ipfsUrl;
+    }
+    return url;
+  }
+
+  /**
+   * NFT image map
+   */
   const imageList = imageUrlArr.map((url, index) => (
     <div key={index} style={{ display: "inline-block", padding: "10px" }}>
       <img width="180px" src={url} alt="nfts" />
@@ -70,6 +90,38 @@ function NftLogin() {
   };
 
   /**
+   * 데이터 조회후 처리
+   * @param {object} response
+   */
+  function setResponseData(response) {
+    setImageUrlArr([]);
+    let balance = response.data.data.balance;
+    let total = response.data.data.total;
+
+    let message =
+      "SUCCESS : User's NFT Metadata retrieved successfully\n\n=====================================================\n\n";
+
+    if (balance > 0) {
+      if (total < 1) {
+        message =
+          "WARNING : NFT 'BALANCE' retrieved successfully, But failed retrieval 'METADATA'.\n\n=====================================================\n\n";
+      }
+
+      setResponseObject(response.data.data);
+      setResponse(message + JSON.stringify(response.data.data));
+      setIsDisabled(false);
+
+      //metadata 조회성공여부
+      if (balance === total) {
+        showNftImage(response.data.data);
+      }
+    } else {
+      setResponse("WARNING : User's NFT balance is zero");
+      setIsDisabled(true);
+    }
+  }
+
+  /**
    * 0. 카이카스 로그인 버튼
    * @returns
    */
@@ -87,16 +139,60 @@ function NftLogin() {
   }
 
   /**
+   * fastdive - API 호출 : verifyHolder
+   * @param {*} _signObj
+   * @param {*} _message
+   * @param {*} _walletType
+   */
+  async function getNftMetadataByOwner(_signObj, _message, _walletType) {
+    setResponse("PROCESSING..");
+    setIsLoading(true);
+
+    const headers = {
+      "Content-Type": "application/json",
+      "x-api-key": apikey,
+    };
+    await axios
+      .post(
+        // "http://localhost:3000/development/v1/nft/verifyHolder",
+        "https://api.fast-dive.com/v1/nft/verifyHolder",
+        {
+          sign: _signObj,
+          signMessage: _message,
+          contractAddress: contractAddress,
+          chainId: chainId,
+          walletType: _walletType,
+        },
+        {
+          headers: headers,
+        }
+      )
+      .then(function (response) {
+        setIsLoading(false);
+        setResponseData(response);
+      })
+      .catch(function (e) {
+        setIsLoading(false);
+        setResponse(
+          "FAILED : NFT Verify Failed ...\n error :  \n" + JSON.stringify(e)
+        );
+        setIsDisabled(true);
+      });
+    setIsLoading(false);
+  }
+
+  /**
    * 1. 카이카스 <-> 웹사이트 connect 확인
    * @returns bool
    */
   async function connectWithKaikas() {
+    setResponse("connect Your Account");
     if (!window.klaytn.isKaikas) {
-      // alert("kaikas 설치 해주세요!");
       setResponse((prev) => "\n\nplease install kaikas wallet" + prev);
       return false;
     }
-    setResponse((prev) => "\n\nconnect Kaikas in progress ..." + prev);
+
+    setResponse((prev) => "\n\nconnect Kaikas in progress ...\n\n" + prev);
     try {
       const accounts = await window.klaytn.enable();
       setResponse((prev) => "\n\nconnect success -> " + accounts[0] + prev);
@@ -116,9 +212,6 @@ function NftLogin() {
    */
   async function signWithKaikas() {
     const caver = new Caver(klaytn);
-    // puuvilla 0xef45d7272211f7d9c9b3b509d550e8856cd9e050
-    // sheepfarm 0xa9f07b1260bb9eebcbaba66700b00fe08b61e1e6
-    // const contractAddress = "0x7b19bf9abe4119618f69aebb78b27f73cdaa4182"; //birdieshot
 
     setResponse((prev) => "\n\nsignature in progress ..." + prev);
 
@@ -129,49 +222,14 @@ function NftLogin() {
         message,
         window.klaytn.selectedAddress
       );
-      const headers = {
-        "Content-Type": "application/json",
-        "x-api-key": apikey,
-      };
-      axios
-        .post(
-          "https://jml6mjauvi.execute-api.ap-northeast-2.amazonaws.com/v1/nft/verifyHolder",
-          // "https://p6eyx3nxqj.execute-api.ap-northeast-2.amazonaws.com/v1/nft/verifyHolder",
-          // "http://localhost:3000/v1/nft/verifyHolder",
-          // "https://api.fast-dive.com/v1/nft/verifyHolder",
-          {
-            sign: signObj,
-            signMessage: message,
-            contractAddress: contractAddress,
-            chainId: chainId,
-            walletType: "kaikas",
-          },
-          {
-            headers: headers,
-          }
-        )
-        .then(function (response) {
-          if (response.data.data.length > 0) {
-            console.log(response.data.data);
-            setResponseObject(response.data.data);
-            setResponse(
-              (prev) => "\n\n" + JSON.stringify(response.data.data) + prev
-            );
-            setIsDisabled(false);
-          } else {
-            setResponse((prev) => "\n\nUser is no have NFT balance" + prev);
-            setIsDisabled(true);
-          }
-        })
-        .catch(function (e) {
-          setResponse(
-            "NFT verify failed ...\n error :  \n" + JSON.stringify(e)
-          );
-          setIsDisabled(true);
-          // console.log(error);
-        });
+
+      const walletType = "kaikas";
+
+      await getNftMetadataByOwner(signObj, message, walletType);
     } catch (e) {
-      setResponse("signature failed ...\n error :  \n" + JSON.stringify(e));
+      setResponse(
+        "FAILED : signature failed ...\n error :  \n" + JSON.stringify(e)
+      );
       setIsDisabled(true);
     }
   }
@@ -232,46 +290,9 @@ function NftLogin() {
         params: [message, window.ethereum.selectedAddress, v4()],
       });
 
-      const headers = {
-        "Content-Type": "application/json",
-        "x-api-key": apikey,
-      };
+      const walletType = "metamask";
 
-      axios
-        .post(
-          // "http://localhost:3000/v1/nft/verifyHolder",
-          "https://jml6mjauvi.execute-api.ap-northeast-2.amazonaws.com/v1/nft/verifyHolder",
-          // "https://api.fast-dive.com/v1/nft/verifyHolder",
-          {
-            sign: signObj,
-            signMessage: message,
-            contractAddress: contractAddress,
-            chainId: chainId,
-            walletType: "metamask",
-          },
-          {
-            headers: headers,
-          }
-        )
-        .then(function (response) {
-          if (response.data.data.length > 0) {
-            console.log(response.data.data);
-            setResponseObject(response.data.data);
-            setResponse(JSON.stringify(response.data.data));
-            setIsDisabled(false);
-          } else {
-            setResponse((prev) => "User is no have NFT balance" + prev);
-            setIsDisabled(true);
-          }
-        })
-        .catch(function (e) {
-          setResponse(
-            (prev) =>
-              "NFT verify failed ...\n error :  \n" + JSON.stringify(e) + prev
-          );
-          setIsDisabled(true);
-          // console.log(error);
-        });
+      getNftMetadataByOwner(signObj, message, walletType);
     } catch (e) {
       setResponse(
         (prev) =>
@@ -281,55 +302,79 @@ function NftLogin() {
     }
   }
 
+  /**
+   * All 버튼 클릭
+   * response 모든 값 불러오기
+   */
   function onClickAllButton() {
     setResponse(JSON.stringify(responseObject));
   }
 
-  function onClickCountButton() {
-    setResponse("NFT_COUNT : " + responseObject[0].nftBalance);
-    // setResponse("NFT_COUNT : " + responseObject.length);
+  /**
+   * Balance 버튼 클릭
+   * NFT balance 조회
+   */
+  function onClickBalanceButton() {
+    setResponse("NFT_BALANCE : " + responseObject.balance);
   }
 
+  // message
+  const failedMessageNoMetadata = "ERROR : NFT Metadata does not exist";
+
+  /**
+   * TokenId 버튼클릭
+   * NFT tokenId 조회
+   */
   function onClickTokenIdButton() {
     let res = "";
-
-    for (let i = 1; i < responseObject.length; i++) {
-      res += "NFT TOKEN_ID : " + responseObject[i].tokenId + "\n";
+    for (let i = 0; i < responseObject.result.length; i++) {
+      res += "NFT_TOKEN_ID : " + responseObject.result[i].tokenId + "\n";
     }
-
-    setResponse(res);
+    setResponse(res.length < 1 ? failedMessageNoMetadata : res);
   }
 
-  async function onClickMetadataButton() {
+  /**
+   * Metadata 버튼클릭
+   * NFT METADATA 조회
+   */
+  function onClickMetadataButton() {
     let res = "";
-
-    for (let i = 1; i < responseObject.length; i++) {
-      let metadata = await axios.get(responseObject[i].metadataURI);
+    for (let i = 0; i < responseObject.result.length; i++) {
+      let metadata = responseObject.result[i].metadata;
+      // let metadata = await axios.get(responseObject[i].metadataURI);
       res +=
         "\n\n===============  TOKEN_ID : " +
-        responseObject[i].tokenId +
+        responseObject.result[i].tokenId +
         "  =================\n\n";
-      res += JSON.stringify(metadata.data);
+      res += JSON.stringify(metadata);
     }
-
-    // for (const item of responseObject) {
-    //   let metadata = await axios.get(item.metadataURI);
-
-    //   res +=
-    //     "\n\n===============  TOKEN_ID : " +
-    //     item.tokenId +
-    //     "  =================\n\n";
-    //   res += JSON.stringify(metadata.data);
-    // }
-
-    setResponse(res);
+    setResponse(res.length < 1 ? failedMessageNoMetadata : res);
   }
 
-  async function onClickNftImage() {
+  /**
+   * Image 버튼 클릭
+   * NFT Image 태그 호출
+   */
+  function onClickNftImage() {
+    let imgtagArr = [];
+    for (let i = 0; i < responseObject.result.length; i++) {
+      let metadataImage = responseObject.result[i].metadata.image;
+      const imageUrl = tryConvertIpfs(metadataImage);
+      imgtagArr.push(`<img src="${imageUrl}"/>\n\n`);
+    }
+
+    setResponse(imgtagArr < 1 ? failedMessageNoMetadata : imgtagArr);
+  }
+
+  /**
+   * 조회 후 NFT 이미지 조회
+   * @param {object} _responseObj
+   */
+  function showNftImage(_responseObj) {
     let res = [];
-    for (let i = 1; i < responseObject.length; i++) {
-      let metadata = await axios.get(responseObject[i].metadataURI);
-      const imageUrl = tryConvertIpfs(metadata.data.image);
+    for (let i = 0; i < _responseObj.result.length; i++) {
+      let metadataImage = _responseObj.result[i].metadata.image;
+      const imageUrl = tryConvertIpfs(metadataImage);
       res.push(imageUrl);
     }
     setImageUrlArr(res);
@@ -340,32 +385,12 @@ function NftLogin() {
       <section className="content">
         <div>
           {/* title */}
-          <div className="title">
-            {/* <img className="img-title" src={klaytnLogo} alt="klaytnLogo" />
-            &nbsp;&nbsp;
-            <img className="img-title" src={etherumLogo} alt="etherumLogo" />
-            &nbsp;&nbsp;
-            <img className="img-title" src={polygonLogo} alt="polygonLogo" />
-            &nbsp;&nbsp;
-            <img className="img-title" src={bnbLogo} alt="bnbLogo" />
-            &nbsp;&nbsp;
-            <img className="img-title" src={boraLogo} alt="boraLogo" />
-            &nbsp;&nbsp;
-            <img className="img-title" src={wemixLogo} alt="wemixLogo" />
-            &nbsp;&nbsp;
-            <img
-              className="img-title"
-              src={avalancheLogo}
-              alt="avalancheLogo"
-            /> */}
-          </div>
           <div
             className="title"
-            style={{ marginTop: "30px", marginBottom: "60px" }}
+            style={{ marginTop: "70px", marginBottom: "60px" }}
           >
             <span>NFT HOLDER VERIFY & LOGIN</span>
           </div>
-
           {/* title end */}
         </div>
         <div className="flexbox">
@@ -390,11 +415,11 @@ function NftLogin() {
             >
               <option value="1">Ethereum [Mainnet]</option>
               <option value="8217">Klaytn [Mainnet]</option>
-              <option disable value="137">
-                Matic [Mainnet]
-              </option>
               <option value="1001">Baobob [Klaytn Testnet] </option>
               <option value="5">Goerli [Etereum Testnet]</option>
+              <option disabled value="137">
+                Matic [Mainnet]
+              </option>
             </select>
             <br />
             &nbsp;NFT Contract Address
@@ -434,7 +459,6 @@ function NftLogin() {
                   src={meta}
                   alt="metamaskLogin"
                 />
-                {/* <span>Connect to Metamask</span> */}
                 <span>Connect to Metamask</span>
               </button>
             </div>
@@ -457,9 +481,9 @@ function NftLogin() {
                 <button
                   className="r-btn"
                   disabled={isDisabled}
-                  onClick={onClickCountButton}
+                  onClick={onClickBalanceButton}
                 >
-                  Count
+                  Balance
                 </button>
               </div>
               <div style={{ flex: 1, paddingRight: 2 }}>
@@ -503,12 +527,20 @@ function NftLogin() {
             </div>
           </div>
           {/* flex item 2 end */}
+          {/* flex item 3 start */}
+          <div
+            className="item"
+            style={{
+              marginBottom: "5px",
+              minHeight: "0",
+            }}
+          >
+            NFT Images<div>{imageList}&nbsp;</div>
+          </div>
+          {/* flex item 3 end */}
         </div>
-
-        <div>{imageList}</div>
-
         <br />
-        <div className="title" style={{ marginBottom: "20px" }}>
+        <div className="icons" style={{ marginBottom: "20px" }}>
           <img className="img-title" src={klaytnLogo} alt="klaytnLogo" />
           &nbsp;&nbsp;
           <img className="img-title" src={etherumLogo} alt="etherumLogo" />
