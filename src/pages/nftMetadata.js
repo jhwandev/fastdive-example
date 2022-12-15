@@ -10,53 +10,74 @@ import boraLogo from "../assets/bora_logo.png";
 import avalancheLogo from "../assets/avalanche_logo.png";
 import wemixLogo from "../assets/wemix_logo.png";
 
-import { exampleCodeInitial } from "../exampleCode.js";
-
-//convert IPFS
-function tryConvertIpfs(url) {
-  if (url.indexOf("ipfs://") > -1) {
-    const ipfsUrl = "https://ipfs.io/ipfs/" + url.split("ipfs://")[1];
-    return ipfsUrl;
-  }
-  return url;
-}
+import { nftMetadataExampleCode } from "../exampleCode.js";
 
 function NftMetadata() {
   //state
-  const exampleCode = exampleCodeInitial;
-  const [response, setResponse] = useState("connect your account.");
+  const exampleCode = nftMetadataExampleCode;
+  const [response, setResponse] = useState(
+    "Search the NFT METADATA this owner has."
+  );
   const [responseObject, setResponseObject] = useState();
   const [chainId, setChainId] = useState("1");
   const [ownerAddress, setOwnerAddress] = useState(
-    "0x46efbaedc92067e6d60e84ed6395099723252496"
+    "0x1361260F84BB384Bba603Ff622a141BB4EAdF8F3"
   );
   const [apikey, setApikey] = useState("12ad0db3-89e7-4589-9c79-3582b3042b88");
   const [contractAddress, setContractAddress] = useState(
-    "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D"
+    "0xed5af388653567af2f388e6224dc7c4b3241c544"
   );
   const [imageUrlArr, setImageUrlArr] = useState([]);
   const [isDisabled, setIsDisabled] = useState(true);
 
-  //klaytn
-  const { klaytn } = window;
+  const [isLoading, setIsLoading] = useState(false);
 
-  const imageList = imageUrlArr.map((url, index) => (
-    <div
-      key={index}
-      style={{
-        display: "inline-block",
-        padding: "10px",
-        backgroundColor: "black",
-        borderRadius: "10px",
-      }}
-    >
-      <img width="180px" src={url} alt="nfts" style={{ borderRadius: "0" }} />
-    </div>
-  ));
+  //loading effect
+  // useEffect(() => {
+  //   const loadingEffect = () => {
+  //     setResponse((prev) => prev + ".");
+  //   };
+  //   if (isLoading) {
+  //     const interval = setInterval(loadingEffect, 100);
+  //     return () => {
+  //       clearInterval(interval);
+  //     };
+  //   }
+  // }, [isLoading]);
 
   useEffect(() => {
-    
-  }, []);
+    const loadingEffect = () => {
+      setResponse((prev) => prev + ".");
+    };
+    if (isLoading) {
+      const interval = setInterval(loadingEffect, 100);
+      return () => {
+        clearInterval(interval);
+      };
+    }
+  }, [isLoading]);
+
+  /**
+   * ipfs일경우 형식에맞춰 convert
+   * @param {string} url
+   * @returns
+   */
+  function tryConvertIpfs(url) {
+    if (url.indexOf("ipfs://") > -1) {
+      const ipfsUrl = "https://ipfs.io/ipfs/" + url.split("ipfs://")[1];
+      return ipfsUrl;
+    }
+    return url;
+  }
+
+  /**
+   * NFT image map
+   */
+  const imageList = imageUrlArr.map((url, index) => (
+    <div key={index} style={{ display: "inline-block", padding: "10px" }}>
+      <img width="180px" src={url} alt="nfts" />
+    </div>
+  ));
 
   /**
    * inputdata onchange event
@@ -82,20 +103,57 @@ function NftMetadata() {
     }
   };
 
-  async function test() {
-    setResponse("processing ...");
+  /**
+   * 데이터 조회후 처리
+   * @param {object} response
+   */
+  function setResponseData(response) {
+    setImageUrlArr([]);
+    let balance = response.data.data.balance;
+    let total = response.data.data.total;
+
+    let message =
+      "SUCCESS : User's NFT Metadata retrieved successfully\n\n=====================================================\n\n";
+
+    if (balance > 0) {
+      if (total < 1) {
+        message =
+          "WARNING : NFT 'BALANCE' retrieved successfully, But failed retrieval 'METADATA'.\n\n=====================================================\n\n";
+      }
+
+      setResponse(message + JSON.stringify(response.data.data));
+      setResponseObject(response.data.data);
+      setIsDisabled(false);
+
+      //metadata 조회성공여부
+      if (balance === total) {
+        showNftImage(response.data.data);
+      }
+    } else {
+      setResponse("WARNING : User's NFT balance is zero");
+      setIsDisabled(true);
+    }
+  }
+
+  /**
+   * 특정 NFT를 보유한 owner의 NFT 갯수와 Metadata를 조회한다.
+   * ownerAddress : 소유자 주소
+   * contractAddress : NFT 컨트랙트 주소
+   * chainId : 체인 아이디
+   */
+  async function getNftMetaDataByOwner() {
+    setResponse("PROCESSING..");
+    setIsLoading(true);
 
     try {
       const headers = {
         "Content-Type": "application/json",
         "x-api-key": apikey,
       };
-      axios
+      await axios
         .post(
-          "https://jml6mjauvi.execute-api.ap-northeast-2.amazonaws.com/v1/nft/metadata", //deploy production
-          // "https://ghqn8lq990.execute-api.ap-northeast-2.amazonaws.com/v1/nft/metadata", //deploy
-          // "https://api.fast-dive.com/v1/nft/metadata",
-          // "http://localhost:3000/v1/nft/metadata",
+          "https://api.fast-dive.com/v1/nft/metadataByOwner",
+          // "http://localhost:3000/development/v1/nft/metadataByOwner",
           {
             ownerAddress: ownerAddress,
             contractAddress: contractAddress,
@@ -106,22 +164,15 @@ function NftMetadata() {
           }
         )
         .then(function (response) {
-          if (response.data.data.length > 0) {
-            console.log(response.data.data);
-            setResponseObject(response.data.data);
-            setResponse(JSON.stringify(response.data.data));
-            setIsDisabled(false);
-          } else {
-            setResponse("User is no have NFT balance");
-            setIsDisabled(true);
-          }
+          setIsLoading(false);
+          setResponseData(response);
         })
         .catch(function (e) {
+          setIsLoading(false);
           setResponse(
-            "NFT verify failed ...\n error :  \n" + JSON.stringify(e)
+            "NFT data Search Failed ...\n error :  \n" + JSON.stringify(e)
           );
           setIsDisabled(true);
-          // console.log(error);
         });
     } catch (e) {
       setResponse("signature failed ...\n error :  \n" + JSON.stringify(e));
@@ -129,65 +180,83 @@ function NftMetadata() {
     }
   }
 
+  /**
+   * All 버튼 클릭
+   * response 모든 값 불러오기
+   */
   function onClickAllButton() {
     setResponse(JSON.stringify(responseObject));
   }
 
-  function onClickCountButton() {
-    setResponse(
-      "NFT_COUNT : " +
-        responseObject[0].nftBalance +
-        "\nLENGTH : " +
-        responseObject.length
-    );
-    // setResponse("NFT_COUNT : " + responseObject.length);
+  /**
+   * Balance 버튼 클릭
+   * NFT balance 조회
+   */
+  function onClickBalanceButton() {
+    setResponse("NFT_BALANCE : " + responseObject.balance);
   }
 
+  // message
+  const failedMessageNoMetadata = "ERROR : NFT Metadata does not exist";
+
+  /**
+   * TokenId 버튼클릭
+   * NFT tokenId 조회
+   */
   function onClickTokenIdButton() {
     let res = "";
-
-    for (let i = 1; i < responseObject.length; i++) {
-      res += "NFT TOKEN_ID : " + responseObject[i].tokenId + "\n";
+    for (let i = 0; i < responseObject.result.length; i++) {
+      res += "NFT_TOKEN_ID : " + responseObject.result[i].tokenId + "\n";
     }
-
-    setResponse(res);
+    setResponse(res.length < 1 ? failedMessageNoMetadata : res);
   }
 
-  async function onClickMetadataButton() {
+  /**
+   * Metadata 버튼클릭
+   * NFT METADATA 조회
+   */
+  function onClickMetadataButton() {
     let res = "";
-
-    for (let i = 1; i < responseObject.length; i++) {
-      let metadata = await axios.get(responseObject[i].metadataURI);
+    for (let i = 0; i < responseObject.result.length; i++) {
+      let metadata = responseObject.result[i].metadata;
+      // let metadata = await axios.get(responseObject[i].metadataURI);
       res +=
         "\n\n===============  TOKEN_ID : " +
-        responseObject[i].tokenId +
+        responseObject.result[i].tokenId +
         "  =================\n\n";
-      res += JSON.stringify(metadata.data);
+      res += JSON.stringify(metadata);
     }
-
-    // for (const item of responseObject) {
-    //   let metadata = await axios.get(item.metadataURI);
-
-    //   res +=
-    //     "\n\n===============  TOKEN_ID : " +
-    //     item.tokenId +
-    //     "  =================\n\n";
-    //   res += JSON.stringify(metadata.data);
-    // }
-
-    setResponse(res);
+    setResponse(res.length < 1 ? failedMessageNoMetadata : res);
   }
 
-  async function onClickNftImage() {
+  /**
+   * Image 버튼 클릭
+   * NFT Image 태그 호출
+   */
+  function onClickNftImage() {
+    let imgtagArr = [];
+    for (let i = 0; i < responseObject.result.length; i++) {
+      let metadataImage = responseObject.result[i].metadata.image;
+      const imageUrl = tryConvertIpfs(metadataImage);
+      imgtagArr.push(`<img src="${imageUrl}"/>\n\n`);
+    }
+
+    setResponse(imgtagArr < 1 ? failedMessageNoMetadata : imgtagArr);
+  }
+
+  /**
+   * 조회 후 NFT 이미지 조회
+   * @param {object} _responseObj
+   */
+  function showNftImage(_responseObj) {
     let res = [];
-    for (let i = 1; i < responseObject.length; i++) {
-      let metadata = await axios.get(responseObject[i].metadataURI);
-      const imageUrl = tryConvertIpfs(metadata.data.image);
+    for (let i = 0; i < _responseObj.result.length; i++) {
+      let metadataImage = _responseObj.result[i].metadata.image;
+      const imageUrl = tryConvertIpfs(metadataImage);
       res.push(imageUrl);
     }
     setImageUrlArr(res);
   }
-
   return (
     <>
       <section className="content">
@@ -195,7 +264,10 @@ function NftMetadata() {
           {/* title */}
           <div
             className="title"
-            style={{ marginTop: "70px", marginBottom: "60px" }}
+            style={{
+              marginTop: "70px",
+              marginBottom: "60px",
+            }}
           >
             <span>NFT METADATA</span>
           </div>
@@ -251,26 +323,11 @@ function NftMetadata() {
             <br />
             <br />
             <div style={{ display: "flex", gap: "1em" }}>
-              <button className="connect-btn" onClick={test}>
+              <button className="connect-btn" onClick={getNftMetaDataByOwner}>
                 <span style={{ paddingRight: "30px", fontSize: "large" }}>
                   NFT Metadata
                 </span>
               </button>
-              {/* <button className="connect-btn">
-                <img
-                  style={{
-                    flex: 1,
-                    width: "30px",
-                    paddingRight: "30px",
-                    display: "flex",
-                    justifyContent: "flex-end",
-                    paddingLeft: "20px",
-                  }}
-                  src={etherumLogo}
-                  alt="ethereum"
-                />
-                <span style={{ paddingRight: "20px" }}> Ethereum NFT</span>
-              </button> */}
             </div>
             <br />
             <br />
@@ -291,9 +348,9 @@ function NftMetadata() {
                 <button
                   className="r-btn"
                   disabled={isDisabled}
-                  onClick={onClickCountButton}
+                  onClick={onClickBalanceButton}
                 >
-                  Count
+                  Balance
                 </button>
               </div>
               <div style={{ flex: 1, paddingRight: 2 }}>

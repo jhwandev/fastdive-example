@@ -50,6 +50,7 @@
   flex-shrink: 1;
   flex-grow: 1;
   color: white;
+  text-shadow: 2px 2px 3px black;
 }
 
 .content {
@@ -85,6 +86,7 @@
   gap: 3em;
   row-gap: 2em;
 }
+
 @media screen and (max-width: 1000px) {
   .item {
     flex-basis: 49%;
@@ -169,7 +171,7 @@
   height: 405px;
   margin-top: 2px;
   /* color: black; */
-  color: rgb(0, 224, 7);
+  color: #00f407;
   /* color: white; */
   background-color: white;
   background-color: black;
@@ -182,7 +184,7 @@
   height: 335px;
   margin-top: 2px;
   /* color: black; */
-  color: rgb(0, 224, 7);
+  color: #00f407;
   /* color: white; */
   background-color: white;
   background-color: black;
