@@ -154,8 +154,9 @@ function NftLogin() {
     };
     await axios
       .post(
+        "https://bsxlqw5365.execute-api.ap-northeast-2.amazonaws.com/production/v1/nft/verifyHolder",
         // "http://localhost:3000/development/v1/nft/verifyHolder",
-        "https://api.fast-dive.com/v1/nft/verifyHolder",
+        // "https://api.fast-dive.com/v1/nft/verifyHolder",
         {
           sign: _signObj,
           signMessage: _message,

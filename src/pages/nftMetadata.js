@@ -150,9 +150,13 @@ function NftMetadata() {
         "Content-Type": "application/json",
         "x-api-key": apikey,
       };
+
+      // axios.defaults.withCredentials = true;
+
       await axios
         .post(
           "https://api.fast-dive.com/v1/nft/metadataByOwner",
+          // "https://bsxlqw5365.execute-api.ap-northeast-2.amazonaws.com/production/v1/nft/metadataByOwner",
           // "http://localhost:3000/development/v1/nft/metadataByOwner",
           {
             ownerAddress: ownerAddress,
