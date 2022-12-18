@@ -127,7 +127,7 @@ function NftMetadata() {
         message = "SUCCESS : NFT Balance Search Success";
       }
 
-      if (Boolean(!data.metadata) && !resOnlyBalance) {
+      if (Boolean(!data.result) && !resOnlyBalance) {
         message = "ERROR : Metadata Search Failed";
       }
       setOnlyBalance(resOnlyBalance);
@@ -214,8 +214,8 @@ function NftMetadata() {
    */
   function onClickTokenIdButton() {
     let res = "";
-    for (let i = 0; i < responseObject.metadata.length; i++) {
-      res += "NFT_TOKEN_ID : " + responseObject.metadata[i].tokenId + "\n";
+    for (let i = 0; i < responseObject.result.length; i++) {
+      res += "NFT_TOKEN_ID : " + responseObject.result[i].tokenId + "\n";
     }
     setResponse(res.length < 1 ? failedMessageNoMetadata : res);
   }
@@ -226,12 +226,12 @@ function NftMetadata() {
    */
   function onClickMetadataButton() {
     let res = "";
-    for (let i = 0; i < responseObject.metadata.length; i++) {
-      let metadata = responseObject.metadata[i].metadata;
+    for (let i = 0; i < responseObject.result.length; i++) {
+      let metadata = responseObject.result[i].metadata;
       // let metadata = await axios.get(responseObject[i].metadataURI);
       res +=
         "\n\n===============  TOKEN_ID : " +
-        responseObject.metadata[i].tokenId +
+        responseObject.result[i].tokenId +
         "  =================\n\n";
       res += JSON.stringify(metadata);
     }
@@ -244,8 +244,8 @@ function NftMetadata() {
    */
   function onClickNftImage() {
     let imgtagArr = [];
-    for (let i = 0; i < responseObject.metadata.length; i++) {
-      let metadataImage = responseObject.metadata[i].metadata.image;
+    for (let i = 0; i < responseObject.result.length; i++) {
+      let metadataImage = responseObject.result[i].metadata.image;
       const imageUrl = tryConvertIpfs(metadataImage);
       imgtagArr.push(`<img src="${imageUrl}"/>\n\n`);
     }
@@ -259,8 +259,8 @@ function NftMetadata() {
    */
   function showNftImage(_responseObj) {
     let res = [];
-    for (let i = 0; i < _responseObj.metadata.length; i++) {
-      let metadataImage = _responseObj.metadata[i].metadata.image;
+    for (let i = 0; i < _responseObj.result.length; i++) {
+      let metadataImage = _responseObj.result[i].metadata.image;
       const imageUrl = tryConvertIpfs(metadataImage);
       res.push(imageUrl);
     }
