@@ -12,8 +12,9 @@ function main() {
         </p>
         <a
           className="App-link"
-          href="https://fearless-coil-306.notion.site/Fast-dive-API-Docs-2facb4ac77894772bedb3c1b5c319ca7"
+          href="https://fast-dive.notion.site/fast-dive/Fastdive-Docs-a0231fead57742f69609bdd4d6d5b584"
           target="_blank"
+          rel="noreferrer"
         >
           Learn about Fast-Dive
         </a>

@@ -32,7 +32,10 @@ async function signWithKaikas() {
   // 5. walletType
   const walletType = 'kaikas'; // or 'metamask'
 
-  // 6. header
+  // 6. onlyBalance
+  cosnt onlyBalance = false // or true 
+
+  // 7. header
   const headers = {
     "Content-Type": "application/json",
     "x-api-key": apikey,
@@ -47,6 +50,7 @@ async function signWithKaikas() {
         sign: signObj,
         chainId: chainId,
         walletType: walletType,
+        onlyBalance: onlyBalance,
       },
       {
         headers: headers,
@@ -59,11 +63,8 @@ async function signWithKaikas() {
       // NFT Balance
       const balance = data.balance;
       
-      // NFT Metadata Count (Array Length)
-      const total = data.total;
-      
-      // NFT Metadata
-      const metadata = data.metadata;
+      // result (NFT TokenInfo, metadata)
+      const result = data.result;
 
       if(balance < 1){
         console.log('Failed - NFT Balance is zero');
@@ -88,7 +89,10 @@ async function getNftData() {
   // 3. ChainId
   const chainId = '8217'; // or '1' ...
 
-  // 4. header
+  // 4. OnlyBalance
+  const onlyBalance = false;
+
+  // 5. header
   const headers = {
     "Content-Type": "application/json",
     "x-api-key": apikey,
@@ -101,6 +105,7 @@ async function getNftData() {
           ownerAddress: ownerAddress,
           contractAddress: contractAddress,
           chainId: chainId,
+          onlyBalance: onlyBalance
         },
         {
           headers: headers,
@@ -115,11 +120,11 @@ async function getNftData() {
         // NFT Metadata Count (Array Length)
         const total = data.total;
         
-        // NFT Metadata
-        const metadata = data.metadata;
+        // result (NFT TokenInfo, metadata)
+        const result = data.result;
 
         if(balance < 1){
-          console.log('Failed - NFT Balance is zero');
+          console.log('NFT Balance is zero');
         }
       })
       .catch(function (e) {

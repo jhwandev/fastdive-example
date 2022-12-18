@@ -168,7 +168,7 @@
 
 .w-textarea {
   width: 99%;
-  height: 405px;
+  height: 335px;
   margin-top: 2px;
   /* color: black; */
   color: #00f407;
@@ -181,7 +181,7 @@
 
 .m-textarea {
   width: 99%;
-  height: 335px;
+  height: 265px;
   margin-top: 2px;
   /* color: black; */
   color: #00f407;
@@ -218,13 +218,17 @@
   color: white;
   font-weight: 600;
   font-size: small;
+
+  border: 1px solid rgb(147, 147, 147);
   /* display: inline-block; */
   /* vertical-align: middle; */
+  /* box-shadow: 0 0 5px 0 white; */
 }
 .connect-btn:hover {
   /* letter-spacing: 2px; */
   /* transform: scale(1.1); */
-  /* background-color: #282c34; */
+  background-color: #ffffff;
+  color: black;
   cursor: pointer;
 }
 .connect-btn:active {

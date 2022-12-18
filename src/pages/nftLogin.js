@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import meta from "../assets/meta.svg";
 import kaikasSvg from "../assets/kaikas.svg";
 import Highlight from "react-highlight";
@@ -25,26 +25,16 @@ function NftLogin() {
   const [chainId, setChainId] = useState("8217");
   const [apikey, setApikey] = useState("12ad0db3-89e7-4589-9c79-3582b3042b88");
   const [contractAddress, setContractAddress] = useState(
-    "0x7b19bf9abe4119618f69aebb78b27f73cdaa4182"
+    "0xd643bb39f81ff9079436f726d2ed27abc547cb38"
+    // "0x7b19bf9abe4119618f69aebb78b27f73cdaa4182"
   );
   const [imageUrlArr, setImageUrlArr] = useState([]);
   const [isDisabled, setIsDisabled] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
+  const [onlyBalanceParam, setOnlyBalanceParam] = useState(false);
+  const [onlyBalance, setOnlyBalance] = useState(false);
 
   //klaytn
   const { klaytn, ethereum } = window;
-
-  useEffect(() => {
-    const loadingEffect = () => {
-      setResponse((prev) => prev + ".");
-    };
-    if (isLoading) {
-      const interval = setInterval(loadingEffect, 100);
-      return () => {
-        clearInterval(interval);
-      };
-    }
-  }, [isLoading]);
 
   /**
    * ipfs일경우 형식에맞춰 convert
@@ -84,6 +74,9 @@ function NftLogin() {
       case "networkSelect":
         setChainId(e.target.value);
         break;
+      case "onlyBalanceParam":
+        setOnlyBalanceParam(e.target.value === "true" ? true : false);
+        break;
       default:
         break;
     }
@@ -93,30 +86,57 @@ function NftLogin() {
    * 데이터 조회후 처리
    * @param {object} response
    */
+  // function setResponseData(response) {
+  //   setImageUrlArr([]);
+  //   let data = response.data.data;
+  //   let balance = data.balance;
+
+  //   let message =
+  //     "SUCCESS : NFT Verify success\n\n=====================================================\n\n";
+
+  //   if (balance > 0) {
+  //     setResponseObject(response.data.data);
+  //     setResponse(message + JSON.stringify(response.data.data));
+  //     setIsDisabled(false);
+  //     setOnlyBalance(data.onlyBalance);
+
+  //     if (!data.onlyBalance) {
+  //       showNftImage(response.data.data);
+  //     }
+  //   } else {
+  //     setResponse("WARNING : User's NFT balance is zero");
+  //     setIsDisabled(true);
+  //   }
+  // }
+
   function setResponseData(response) {
     setImageUrlArr([]);
-    let balance = response.data.data.balance;
-    let total = response.data.data.total;
+    const data = response.data.data;
+    const balance = data.balance;
+
+    const resOnlyBalance = JSON.parse(data.onlyBalance);
 
     let message =
-      "SUCCESS : User's NFT Metadata retrieved successfully\n\n=====================================================\n\n";
+      "SUCCESS : User's NFT Metadata Search success\n\n=====================================================\n\n";
 
     if (balance > 0) {
-      if (total < 1) {
-        message =
-          "WARNING : NFT 'BALANCE' retrieved successfully, But failed retrieval 'METADATA'.\n\n=====================================================\n\n";
+      if (resOnlyBalance) {
+        message = "SUCCESS : NFT Balance Search Success";
       }
 
-      setResponseObject(response.data.data);
+      if (Boolean(!data.result) && !resOnlyBalance) {
+        message = "ERROR : Metadata Search Failed";
+      }
+      setOnlyBalance(resOnlyBalance);
       setResponse(message + JSON.stringify(response.data.data));
+      setResponseObject(data);
       setIsDisabled(false);
 
-      //metadata 조회성공여부
-      if (balance === total) {
-        showNftImage(response.data.data);
+      if (!resOnlyBalance) {
+        showNftImage(data);
       }
     } else {
-      setResponse("WARNING : User's NFT balance is zero");
+      setResponse("WARNING : User's NFT balance is Zero");
       setIsDisabled(true);
     }
   }
@@ -145,8 +165,7 @@ function NftLogin() {
    * @param {*} _walletType
    */
   async function getNftMetadataByOwner(_signObj, _message, _walletType) {
-    setResponse("PROCESSING..");
-    setIsLoading(true);
+    setResponse("Processing.....");
 
     const headers = {
       "Content-Type": "application/json",
@@ -154,31 +173,30 @@ function NftLogin() {
     };
     await axios
       .post(
-        // "http://localhost:3000/development/v1/nft/verifyHolder",
-        "https://api.fast-dive.com/v1/nft/verifyHolder",
+        // "https://bsxlqw5365.execute-api.ap-northeast-2.amazonaws.com/production/v1/nft/verifyHolder",
+        "http://localhost:3000/development/v1/nft/verifyHolder",
+        // "https://api.fast-dive.com/v1/nft/verifyHolder",
         {
           sign: _signObj,
           signMessage: _message,
           contractAddress: contractAddress,
           chainId: chainId,
           walletType: _walletType,
+          onlyBalance: onlyBalanceParam,
         },
         {
           headers: headers,
         }
       )
       .then(function (response) {
-        setIsLoading(false);
         setResponseData(response);
       })
       .catch(function (e) {
-        setIsLoading(false);
         setResponse(
           "FAILED : NFT Verify Failed ...\n error :  \n" + JSON.stringify(e)
         );
         setIsDisabled(true);
       });
-    setIsLoading(false);
   }
 
   /**
@@ -389,7 +407,7 @@ function NftLogin() {
             className="title"
             style={{ marginTop: "70px", marginBottom: "60px" }}
           >
-            <span>NFT HOLDER VERIFY & LOGIN</span>
+            <span>NFT HOLDER VERIFY ( LOGIN )</span>
           </div>
           {/* title end */}
         </div>
@@ -426,11 +444,23 @@ function NftLogin() {
             <br />
             <input
               className="w-input"
+              d
               name="contractAddress"
               onChange={handleChange}
               value={contractAddress}
               maxLength="42"
             />
+            &nbsp;OnlyBalance
+            <br />
+            <select
+              name="onlyBalanceParam"
+              className="w-selectbox"
+              onChange={handleChange}
+              value={onlyBalanceParam}
+            >
+              <option value="true">true</option>
+              <option value="false">false</option>
+            </select>
             <br />
             <br />
             <div style={{ display: "flex", gap: "1em" }}>
@@ -489,7 +519,7 @@ function NftLogin() {
               <div style={{ flex: 1, paddingRight: 2 }}>
                 <button
                   className="r-btn"
-                  disabled={isDisabled}
+                  disabled={isDisabled || onlyBalance}
                   onClick={onClickTokenIdButton}
                 >
                   TokenId
@@ -498,7 +528,7 @@ function NftLogin() {
               <div style={{ flex: 1, paddingRight: 2 }}>
                 <button
                   className="r-btn"
-                  disabled={isDisabled}
+                  disabled={isDisabled || onlyBalance}
                   onClick={onClickMetadataButton}
                 >
                   Metadata
@@ -507,7 +537,7 @@ function NftLogin() {
               <div style={{ paddingRight: 1 }}>
                 <button
                   className="r-btn"
-                  disabled={isDisabled}
+                  disabled={isDisabled || onlyBalance}
                   onClick={onClickNftImage}
                 >
                   Image
