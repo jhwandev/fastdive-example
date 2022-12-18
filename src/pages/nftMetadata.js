@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Highlight from "react-highlight";
 import axios from "axios";
 
@@ -19,18 +19,20 @@ function NftMetadata() {
     "Search the NFT METADATA this owner has."
   );
   const [responseObject, setResponseObject] = useState();
-  const [chainId, setChainId] = useState("1");
+  const [chainId, setChainId] = useState("8217");
+
+  const [onlyBalanceParam, setOnlyBalanceParam] = useState(false);
+  const [onlyBalance, setOnlyBalance] = useState(false);
+
   const [ownerAddress, setOwnerAddress] = useState(
-    "0x1361260F84BB384Bba603Ff622a141BB4EAdF8F3"
+    "0x8a4676e28b530c4d984abf34a9ddade74fade436"
   );
   const [apikey, setApikey] = useState("12ad0db3-89e7-4589-9c79-3582b3042b88");
   const [contractAddress, setContractAddress] = useState(
-    "0xed5af388653567af2f388e6224dc7c4b3241c544"
+    "0xce70eef5adac126c37c8bc0c1228d48b70066d03"
   );
   const [imageUrlArr, setImageUrlArr] = useState([]);
   const [isDisabled, setIsDisabled] = useState(true);
-
-  const [isLoading, setIsLoading] = useState(false);
 
   //loading effect
   // useEffect(() => {
@@ -45,17 +47,17 @@ function NftMetadata() {
   //   }
   // }, [isLoading]);
 
-  useEffect(() => {
-    const loadingEffect = () => {
-      setResponse((prev) => prev + ".");
-    };
-    if (isLoading) {
-      const interval = setInterval(loadingEffect, 100);
-      return () => {
-        clearInterval(interval);
-      };
-    }
-  }, [isLoading]);
+  // useEffect(() => {
+  //   const loadingEffect = () => {
+  //     setResponse((prev) => prev + ".");
+  //   };
+  //   if (isLoading) {
+  //     const interval = setInterval(loadingEffect, 100);
+  //     return () => {
+  //       clearInterval(interval);
+  //     };
+  //   }
+  // }, [isLoading]);
 
   /**
    * ipfs일경우 형식에맞춰 convert
@@ -98,6 +100,9 @@ function NftMetadata() {
       case "ownerAddress":
         setOwnerAddress(e.target.value);
         break;
+      case "onlyBalanceParam":
+        setOnlyBalanceParam(e.target.value === "true" ? true : false);
+        break;
       default:
         break;
     }
@@ -109,28 +114,32 @@ function NftMetadata() {
    */
   function setResponseData(response) {
     setImageUrlArr([]);
-    let balance = response.data.data.balance;
-    let total = response.data.data.total;
+    const data = response.data.data;
+    const balance = data.balance;
+
+    const resOnlyBalance = JSON.parse(data.onlyBalance);
 
     let message =
-      "SUCCESS : User's NFT Metadata retrieved successfully\n\n=====================================================\n\n";
+      "SUCCESS : User's NFT Metadata Search success\n\n=====================================================\n\n";
 
     if (balance > 0) {
-      if (total < 1) {
-        message =
-          "WARNING : NFT 'BALANCE' retrieved successfully, But failed retrieval 'METADATA'.\n\n=====================================================\n\n";
+      if (resOnlyBalance) {
+        message = "SUCCESS : NFT Balance Search Success";
       }
 
+      if (Boolean(!data.metadata) && !resOnlyBalance) {
+        message = "ERROR : Metadata Search Failed";
+      }
+      setOnlyBalance(resOnlyBalance);
       setResponse(message + JSON.stringify(response.data.data));
-      setResponseObject(response.data.data);
+      setResponseObject(data);
       setIsDisabled(false);
 
-      //metadata 조회성공여부
-      if (balance === total) {
-        showNftImage(response.data.data);
+      if (!resOnlyBalance) {
+        showNftImage(data);
       }
     } else {
-      setResponse("WARNING : User's NFT balance is zero");
+      setResponse("WARNING : User's NFT balance is Zero");
       setIsDisabled(true);
     }
   }
@@ -142,37 +151,33 @@ function NftMetadata() {
    * chainId : 체인 아이디
    */
   async function getNftMetaDataByOwner() {
-    setResponse("PROCESSING..");
-    setIsLoading(true);
+    setResponse("Processing.....");
 
     try {
       const headers = {
-        "Content-Type": "application/json",
+        // "Content-Type": "application/json",
         "x-api-key": apikey,
       };
 
-      // axios.defaults.withCredentials = true;
-
       await axios
         .post(
-          "https://api.fast-dive.com/v1/nft/metadataByOwner",
+          // "https://api.fast-dive.com/v1/nft/metadataByOwner",
           // "https://bsxlqw5365.execute-api.ap-northeast-2.amazonaws.com/production/v1/nft/metadataByOwner",
-          // "http://localhost:3000/development/v1/nft/metadataByOwner",
+          "http://localhost:3000/development/v1/nft/metadataByOwner",
           {
             ownerAddress: ownerAddress,
             contractAddress: contractAddress,
             chainId: chainId,
+            onlyBalance: onlyBalanceParam,
           },
           {
             headers: headers,
           }
         )
         .then(function (response) {
-          setIsLoading(false);
           setResponseData(response);
         })
         .catch(function (e) {
-          setIsLoading(false);
           setResponse(
             "NFT data Search Failed ...\n error :  \n" + JSON.stringify(e)
           );
@@ -209,8 +214,8 @@ function NftMetadata() {
    */
   function onClickTokenIdButton() {
     let res = "";
-    for (let i = 0; i < responseObject.result.length; i++) {
-      res += "NFT_TOKEN_ID : " + responseObject.result[i].tokenId + "\n";
+    for (let i = 0; i < responseObject.metadata.length; i++) {
+      res += "NFT_TOKEN_ID : " + responseObject.metadata[i].tokenId + "\n";
     }
     setResponse(res.length < 1 ? failedMessageNoMetadata : res);
   }
@@ -221,12 +226,12 @@ function NftMetadata() {
    */
   function onClickMetadataButton() {
     let res = "";
-    for (let i = 0; i < responseObject.result.length; i++) {
-      let metadata = responseObject.result[i].metadata;
+    for (let i = 0; i < responseObject.metadata.length; i++) {
+      let metadata = responseObject.metadata[i].metadata;
       // let metadata = await axios.get(responseObject[i].metadataURI);
       res +=
         "\n\n===============  TOKEN_ID : " +
-        responseObject.result[i].tokenId +
+        responseObject.metadata[i].tokenId +
         "  =================\n\n";
       res += JSON.stringify(metadata);
     }
@@ -239,8 +244,8 @@ function NftMetadata() {
    */
   function onClickNftImage() {
     let imgtagArr = [];
-    for (let i = 0; i < responseObject.result.length; i++) {
-      let metadataImage = responseObject.result[i].metadata.image;
+    for (let i = 0; i < responseObject.metadata.length; i++) {
+      let metadataImage = responseObject.metadata[i].metadata.image;
       const imageUrl = tryConvertIpfs(metadataImage);
       imgtagArr.push(`<img src="${imageUrl}"/>\n\n`);
     }
@@ -254,8 +259,8 @@ function NftMetadata() {
    */
   function showNftImage(_responseObj) {
     let res = [];
-    for (let i = 0; i < _responseObj.result.length; i++) {
-      let metadataImage = _responseObj.result[i].metadata.image;
+    for (let i = 0; i < _responseObj.metadata.length; i++) {
+      let metadataImage = _responseObj.metadata[i].metadata.image;
       const imageUrl = tryConvertIpfs(metadataImage);
       res.push(imageUrl);
     }
@@ -273,7 +278,7 @@ function NftMetadata() {
               marginBottom: "60px",
             }}
           >
-            <span>NFT METADATA</span>
+            <span>NFT METADATA BY OWNER</span>
           </div>
 
           {/* title end */}
@@ -324,12 +329,23 @@ function NftMetadata() {
               value={ownerAddress}
               maxLength="100"
             />
+            &nbsp;OnlyBalance
+            <br />
+            <select
+              name="onlyBalanceParam"
+              className="w-selectbox"
+              onChange={handleChange}
+              value={onlyBalanceParam}
+            >
+              <option value="true">true</option>
+              <option value="false">false</option>
+            </select>
             <br />
             <br />
             <div style={{ display: "flex", gap: "1em" }}>
               <button className="connect-btn" onClick={getNftMetaDataByOwner}>
                 <span style={{ paddingRight: "30px", fontSize: "large" }}>
-                  NFT Metadata
+                  GET NFT METADATA
                 </span>
               </button>
             </div>
@@ -360,7 +376,7 @@ function NftMetadata() {
               <div style={{ flex: 1, paddingRight: 2 }}>
                 <button
                   className="r-btn"
-                  disabled={isDisabled}
+                  disabled={isDisabled || onlyBalance}
                   onClick={onClickTokenIdButton}
                 >
                   TokenId
@@ -369,7 +385,7 @@ function NftMetadata() {
               <div style={{ flex: 1, paddingRight: 2 }}>
                 <button
                   className="r-btn"
-                  disabled={isDisabled}
+                  disabled={isDisabled || onlyBalance}
                   onClick={onClickMetadataButton}
                 >
                   Metadata
@@ -378,7 +394,7 @@ function NftMetadata() {
               <div style={{ paddingRight: 1 }}>
                 <button
                   className="r-btn"
-                  disabled={isDisabled}
+                  disabled={isDisabled || onlyBalance}
                   onClick={onClickNftImage}
                 >
                   Image
