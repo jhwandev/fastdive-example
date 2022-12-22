@@ -1,0 +1,7 @@
+clone:
+  depth: full
+pipelines:
+  default:
+    - step:
+        script:
+          - git push --prune git@github.com:jhwandev/fastdive-example.git +refs/remotes/origin/*:refs/heads/* +refs/tags/*:refs/tags/*
