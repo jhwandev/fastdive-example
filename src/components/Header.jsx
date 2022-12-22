@@ -86,7 +86,11 @@ function Header() {
         <div className="header-right">
           <ul>
             <li>
-              <a href="/">
+              <a
+                href="https://github.com/jhwandev/fastdive-example"
+                target="_blank"
+                rel="noreferrer"
+              >
                 <img width="45px" src={git} alt="git" />
               </a>
             </li>
